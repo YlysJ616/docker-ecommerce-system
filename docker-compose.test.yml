@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  db-test:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: ecommerce_test
+      MYSQL_USER: test_user
+      MYSQL_PASSWORD: test_pass
+    tmpfs:
+      - /var/lib/mysql
+    networks:
+      - test-network
+
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-test:3306/ecommerce_test
+      SPRING_DATASOURCE_USERNAME: test_user
+      SPRING_DATASOURCE_PASSWORD: test_pass
+    depends_on:
+      - db-test
+    networks:
+      - test-network
+    ports:
+      - "8080:8080"
+
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend-test
+    networks:
+      - test-network
+    ports:
+      - "80:80"
+
+networks:
+  test-network:
+    driver: bridge

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电商数据管理系统</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🛒 电商数据管理系统</h1>
+            <nav>
+                <button onclick="showAllProducts()">所有商品</button>
+                <button onclick="showAddForm()">添加商品</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- 搜索栏 -->
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="搜索商品...">
+            <button onclick="searchProducts()">搜索</button>
+            <select id="categoryFilter" onchange="filterByCategory()">
+                <option value="">所有分类</option>
+                <option value="手机">手机</option>
+                <option value="电脑">电脑</option>
+                <option value="平板">平板</option>
+                <option value="智能手表">智能手表</option>
+                <option value="配件">配件</option>
+                <option value="相机">相机</option>
+                <option value="智能家居">智能家居</option>
+            </select>
+        </div>
+
+        <!-- 商品列表 -->
+        <div id="productList" class="product-grid"></div>
+
+        <!-- 分页 -->
+        <div id="pagination" class="pagination"></div>
+
+        <!-- 商品详情模态框 -->
+        <div id="detailModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <div id="productDetail"></div>
+            </div>
+        </div>
+
+        <!-- 添加/编辑商品表单 -->
+        <div id="formModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeFormModal()">&times;</span>
+                <h2 id="formTitle">添加商品</h2>
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+                    <label>商品名称:</label>
+                    <input type="text" id="productName" required>
+                    
+                    <label>商品描述:</label>
+                    <textarea id="productDescription" rows="3"></textarea>
+                    
+                    <label>价格:</label>
+                    <input type="number" id="productPrice" step="0.01" required>
+                    
+                    <label>库存:</label>
+                    <input type="number" id="productStock" required>
+                    
+                    <label>分类:</label>
+                    <input type="text" id="productCategory">
+                    
+                    <label>图片URL:</label>
+                    <input type="text" id="productImageUrl">
+                    
+                    <button type="submit">保存</button>
+                    <button type="button" onclick="closeFormModal()">取消</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 电商数据管理系统 | Docker 期末项目</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
