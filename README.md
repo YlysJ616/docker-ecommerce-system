@@ -137,8 +137,8 @@ docker-compose exec db mysqladmin ping -h localhost -u root -proot123
 
 ## 开发团队
 
-- 杨杰: 前端开发 + Docker配置
-- 张杰认: 后端开发 + CI/CD 
+- 杨杰: 前端开发 + 接口设计
+- 张杰认: 后端开发 + Docker配置
 - 黎卫兵: 数据库设计 + 文档编写
 
 ## 许可证
