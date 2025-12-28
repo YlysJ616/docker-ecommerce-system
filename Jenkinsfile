@@ -64,22 +64,8 @@ pipeline {
         
         stage('推送镜像') {
             steps {
-                echo '推送镜像到Docker Registry...'
-                script {
-                    withCredentials([usernamePassword(
-                        credentialsId: 'docker-registry-credentials',
-                        usernameVariable: 'DOCKER_USER',
-                        passwordVariable: 'DOCKER_PASS'
-                    )]) {
-                        sh """
-                            echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                            docker tag ${IMAGE_NAME}-backend:${IMAGE_TAG} ${DOCKER_REGISTRY}/${IMAGE_NAME}-backend:${IMAGE_TAG}
-                            docker tag ${IMAGE_NAME}-frontend:${IMAGE_TAG} ${DOCKER_REGISTRY}/${IMAGE_NAME}-frontend:${IMAGE_TAG}
-                            docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}-backend:${IMAGE_TAG}
-                            docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}-frontend:${IMAGE_TAG}
-                        """
-                    }
-                }
+                echo '跳过推送镜像（本地部署模式）...'
+                echo '如需推送到Registry，请配置docker-registry-credentials凭据'
             }
         }
         
