@@ -91,21 +91,25 @@ pipeline {
                     docker stop ecommerce-frontend ecommerce-backend ecommerce-db 2>/dev/null || true
                     docker rm ecommerce-frontend ecommerce-backend ecommerce-db 2>/dev/null || true
                     
-                    echo "清理数据卷（确保数据库重新初始化）..."
+                    echo "清理数据卷..."
                     docker volume rm docker_db_data 2>/dev/null || true
                     docker volume rm $(docker volume ls -q | grep ecommerce) 2>/dev/null || true
+                    docker volume rm $(docker volume ls -q | grep db_data) 2>/dev/null || true
                     
                     echo "启动服务..."
                     docker-compose up -d --build
                     
-                    echo "等待数据库初始化完成..."
-                    sleep 30
+                    echo "等待数据库启动..."
+                    sleep 40
+                    
+                    echo "手动执行数据库初始化脚本..."
+                    docker exec -i ecommerce-db mysql -u root -proot123 < ./database/init-chinese.sql || true
                     
                     echo "检查服务状态..."
                     docker-compose ps
                     
-                    echo "验证数据库初始化..."
-                    docker exec ecommerce-db mysql -u root -proot123 -e "USE ecommerce; SELECT COUNT(*) as product_count FROM products;" || true
+                    echo "验证数据库数据..."
+                    docker exec ecommerce-db mysql -u root -proot123 -e "USE ecommerce; SELECT COUNT(*) as product_count FROM products;"
                 '''
             }
         }
