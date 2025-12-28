@@ -86,8 +86,19 @@ pipeline {
             steps {
                 echo '部署应用...'
                 sh '''
-                    docker-compose down || true
-                    docker-compose up -d
+                    echo "停止现有容器..."
+                    docker-compose down --remove-orphans || true
+                    docker stop ecommerce-frontend ecommerce-backend ecommerce-db 2>/dev/null || true
+                    docker rm ecommerce-frontend ecommerce-backend ecommerce-db 2>/dev/null || true
+                    
+                    echo "启动服务..."
+                    docker-compose up -d --build
+                    
+                    echo "等待服务启动..."
+                    sleep 10
+                    
+                    echo "检查服务状态..."
+                    docker-compose ps
                 '''
             }
         }
