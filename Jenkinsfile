@@ -87,18 +87,25 @@ pipeline {
                 echo '部署应用...'
                 sh '''
                     echo "停止现有容器..."
-                    docker-compose down --remove-orphans || true
+                    docker-compose down -v --remove-orphans || true
                     docker stop ecommerce-frontend ecommerce-backend ecommerce-db 2>/dev/null || true
                     docker rm ecommerce-frontend ecommerce-backend ecommerce-db 2>/dev/null || true
+                    
+                    echo "清理数据卷（确保数据库重新初始化）..."
+                    docker volume rm docker_db_data 2>/dev/null || true
+                    docker volume rm $(docker volume ls -q | grep ecommerce) 2>/dev/null || true
                     
                     echo "启动服务..."
                     docker-compose up -d --build
                     
-                    echo "等待服务启动..."
-                    sleep 10
+                    echo "等待数据库初始化完成..."
+                    sleep 30
                     
                     echo "检查服务状态..."
                     docker-compose ps
+                    
+                    echo "验证数据库初始化..."
+                    docker exec ecommerce-db mysql -u root -proot123 -e "USE ecommerce; SELECT COUNT(*) as product_count FROM products;" || true
                 '''
             }
         }
