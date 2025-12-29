@@ -19,7 +19,7 @@ pipeline {
             steps {
                 echo '构建后端Spring Boot应用...'
                 dir('backend') {
-                    sh 'mvn clean package -DskipTests'
+                    bat 'mvn clean package -DskipTests'
                 }
             }
         }
@@ -28,7 +28,7 @@ pipeline {
             steps {
                 echo '运行单元测试...'
                 dir('backend') {
-                    sh 'mvn test'
+                    bat 'mvn test'
                 }
             }
             post {
@@ -42,7 +42,7 @@ pipeline {
             steps {
                 echo '构建Docker镜像...'
                 script {
-                    sh """
+                    bat """
                         docker build -t ${IMAGE_NAME}-backend:${IMAGE_TAG} ./backend
                         docker build -t ${IMAGE_NAME}-frontend:${IMAGE_TAG} ./frontend
                     """
@@ -52,13 +52,7 @@ pipeline {
         
         stage('镜像扫描') {
             steps {
-                echo '扫描Docker镜像安全漏洞...'
-                script {
-                    sh """
-                        docker scan ${IMAGE_NAME}-backend:${IMAGE_TAG} || true
-                        docker scan ${IMAGE_NAME}-frontend:${IMAGE_TAG} || true
-                    """
-                }
+                echo '跳过镜像扫描（Windows环境）...'
             }
         }
         
@@ -72,11 +66,11 @@ pipeline {
         stage('集成测试') {
             steps {
                 echo '验证Docker镜像构建成功...'
-                sh '''
+                bat '''
                     echo "检查后端镜像..."
-                    docker images | grep ecommerce-system-backend || true
+                    docker images | findstr ecommerce-system-backend || echo "后端镜像未找到"
                     echo "检查前端镜像..."
-                    docker images | grep ecommerce-system-frontend || true
+                    docker images | findstr ecommerce-system-frontend || echo "前端镜像未找到"
                     echo "镜像验证完成"
                 '''
             }
@@ -85,28 +79,27 @@ pipeline {
         stage('部署') {
             steps {
                 echo '部署应用...'
-                sh '''
+                bat '''
                     echo "停止现有容器..."
-                    docker-compose down -v --remove-orphans || true
-                    docker stop ecommerce-frontend ecommerce-backend ecommerce-db 2>/dev/null || true
-                    docker rm ecommerce-frontend ecommerce-backend ecommerce-db 2>/dev/null || true
+                    docker-compose down -v --remove-orphans || echo "无需停止"
+                    docker stop ecommerce-frontend ecommerce-backend ecommerce-db 2>nul || echo "容器已停止"
+                    docker rm ecommerce-frontend ecommerce-backend ecommerce-db 2>nul || echo "容器已删除"
                     
                     echo "清理数据卷..."
-                    docker volume rm docker_db_data 2>/dev/null || true
-                    docker volume rm $(docker volume ls -q | grep ecommerce) 2>/dev/null || true
-                    docker volume rm $(docker volume ls -q | grep db_data) 2>/dev/null || true
+                    docker volume rm docker_db_data 2>nul || echo "卷已清理"
                     
                     echo "启动服务..."
                     docker-compose up -d --build
                     
                     echo "等待数据库启动..."
-                    sleep 40
-                    
-                    echo "手动执行数据库初始化脚本..."
-                    docker exec -i ecommerce-db mysql -u root -proot123 < ./database/init-chinese.sql || true
+                    timeout /t 40 /nobreak
                     
                     echo "检查服务状态..."
                     docker-compose ps
+                '''
+                bat '''
+                    echo "手动执行数据库初始化脚本..."
+                    docker exec -i ecommerce-db mysql -u root -proot123 ecommerce < database/init-chinese.sql || echo "初始化完成或已存在"
                     
                     echo "验证数据库数据..."
                     docker exec ecommerce-db mysql -u root -proot123 -e "USE ecommerce; SELECT COUNT(*) as product_count FROM products;"
